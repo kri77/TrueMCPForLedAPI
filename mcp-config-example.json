@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "led-controller": {
+      "command": "python",
+      "args": [
+        "E:\\prosjekter\\ClaudeCode\\ClaudeMCPForLedAPi\\MCPForLedAPI.py"
+      ]
+    }
+  }
+}
