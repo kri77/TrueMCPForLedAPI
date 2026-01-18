@@ -22,9 +22,58 @@ It allows any MCP-compatible client (Claude Desktop, Claude Code, or other MCP c
 |------------------|------------------------------------------------|-------------------------------|
 | turn_on_led      | Turn on a specific LED by color                | `color: "red"/"yellow"/"green"/"blue"` |
 | turn_off_leds    | Turn off all LEDs                              | none                          |
-| set_led_pattern  | Set a custom 4-digit binary pattern            | `pattern: "1010"`             |
+| set_led_pattern  | Set a custom LED pattern (supports simple and extended formats) | `pattern: "1010"` or `"2020:0000:500"` |
+| set_blink_pattern | Set LEDs with blinking support, sequence, and intervals | `led_states: "2020"`, `blink_order: "1234"`, `interval_ms: 500` |
 | set_mood         | Set LEDs based on predefined mood              | `mood: "calm"/"alert"/"happy"/etc` |
 | get_led_status   | Get the current status of all LEDs             | none                          |
+
+---
+
+## LED Blinking Patterns
+
+The MCP server now supports advanced blinking patterns with the following capabilities:
+
+### Pattern Formats
+
+**Simple Format (Backward Compatible)**
+- Format: `"1010"` (4-digit binary)
+- Each digit represents an LED: red, yellow, green, blue
+- `0` = off, `1` = on steady
+- Example: `"1010"` turns on red and green LEDs
+
+**Extended Format (Blinking Support)**
+- Format: `"SSSS:OOOO:III"`
+- `SSSS` = 4-digit LED state (0=off, 1=on steady, 2=blink)
+- `OOOO` = 4-digit blink sequence order (0=no sequence, 1-4=order position)
+- `III` = Blink interval in milliseconds
+
+### Blinking Examples
+
+```python
+# All LEDs blink simultaneously at 500ms
+"2222:0000:500"
+
+# Red and green blink in sequence at 250ms intervals
+"2020:1200:250"
+
+# Red steady, yellow blinking, green blinking (sequential), blue off
+"1220:0012:1000"
+
+# All LEDs blink in sequence (red→yellow→green→blue) at 300ms
+"2222:1234:300"
+```
+
+### Using the set_blink_pattern Tool
+
+For a more user-friendly interface, use the `set_blink_pattern` tool:
+
+```python
+{
+  "led_states": "2020",      # Red and green blink
+  "blink_order": "1200",     # Red first, then green
+  "interval_ms": 500         # 500ms between blinks
+}
+```
 
 ---
 
@@ -226,6 +275,8 @@ Once configured with any MCP client, you can control your LEDs through natural l
 - "Turn off all LEDs"
 - "Set LED pattern to 1010"
 - "Make the LEDs show a happy mood"
+- "Make the red and green LEDs blink together at 1 second intervals"
+- "Blink all LEDs in sequence from red to blue"
 
 Or programmatically through tool calls:
 
@@ -236,8 +287,18 @@ Or programmatically through tool calls:
 # set_mood tool
 {"mood": "happy"}
 
-# set_led_pattern tool
+# set_led_pattern tool (simple format - backward compatible)
 {"pattern": "1010"}
+
+# set_led_pattern tool (extended format with blinking)
+{"pattern": "2020:0000:1000"}  # Red and green blink simultaneously at 1000ms
+
+# set_blink_pattern tool (user-friendly blinking interface)
+{
+  "led_states": "2222",      # All LEDs blink
+  "blink_order": "1234",     # Sequential order: red, yellow, green, blue
+  "interval_ms": 250         # 250ms intervals
+}
 
 # turn_off_leds tool
 {}
@@ -361,7 +422,7 @@ Example adding a `blink_led` tool:
 # In list_tools():
 Tool(
     name="blink_led",
-    description="Blink an LED with a specific pattern",
+    description="Blink a LED with a specific pattern",
     inputSchema={
         "type": "object",
         "properties": {
