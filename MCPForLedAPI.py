@@ -4,15 +4,16 @@ from mcp.server import Server
 from mcp.types import Tool, TextContent
 import mcp.server.stdio
 
-LED_API_BASE = "http://localhost:5000"
+LED_API_BASE = "http://localhost:5000" #the url for the LED API used to communicate with the Arduino
 
-# LED Pattern Translator
+# LED Pattern Translator, ensures the pattern is valid , 0000, 0100 etc.
 def set_led_pattern(pattern: str):
     if len(pattern) != 4 or any(c not in "01" for c in pattern):
         raise ValueError("Invalid LED pattern format. Must be 4 digits of 0s and 1s.")
     res = requests.post(f"{LED_API_BASE}/setLedStatus", json={"pattern": pattern})
     return res.json()
 
+# Returns the current LED status from the API
 def get_led_status():
     res = requests.get(f"{LED_API_BASE}/status")
     return res.json()
